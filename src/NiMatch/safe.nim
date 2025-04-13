@@ -61,3 +61,55 @@ macro match*(subject: untyped, branches: untyped): untyped =
       let `subjectSym` = `subject`
       `resultExpr`
     )()
+
+
+macro match*(subject: bool, branches: untyped): untyped =
+  let subjectSym = genSym(nskLet, "boolMatchSubject")
+  var trueBody, falseBody, catchAllBody: NimNode
+  var hasTrue, hasFalse: bool
+
+  for branch in branches:
+    if branch.kind != nnkExprColonExpr and branch.kind != nnkInfix:
+      error("Each branch must be of the form: pattern => expression", branch)
+
+    let pat = branch[1]
+    let body = branch[2]
+
+    case pat.kind
+    of nnkIdent:
+      let name = $pat
+      if name == "true":
+        hasTrue = true
+        trueBody = body
+      elif name == "false":
+        hasFalse = true
+        falseBody = body
+      elif name == "_":
+        catchAllBody = body
+      else:
+        error("Invalid pattern in boolean match: " & name, pat)
+    else:
+      error("Invalid pattern kind in boolean match", pat)
+
+  if not (hasTrue and hasFalse) and catchAllBody.isNil:
+    error("Match on bool must be exhaustive. Provide both `true` and `false`, or use `_`.")
+
+  # Construct the match expression
+  var resultExpr: NimNode
+  if hasTrue and hasFalse:
+    resultExpr = quote do:
+      if `subjectSym`: `trueBody` else: `falseBody`
+  elif hasTrue:
+    resultExpr = quote do:
+      if `subjectSym`: `trueBody` else: `catchAllBody`
+  elif hasFalse:
+    resultExpr = quote do:
+      if not `subjectSym`: `falseBody` else: `catchAllBody`
+  else:
+    resultExpr = catchAllBody
+
+  result = quote do:
+    (proc(): auto =
+      let `subjectSym` = `subject`
+      `resultExpr`
+    )()
