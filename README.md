@@ -3,9 +3,9 @@
 This tiny package provides a Rust-like match construct for Nim. I wrote it essentially because I prefer the Rust match clear and concise syntax to the Nim ugly case of syntax. It doesn't implement all the functionalities of real Rust match construct though (at least not yet).
 
 The library is divided into a "safe" and "unsafe" implementation:
-- NiMatch/safe: the match macro raise a compile-time 
+- nimatch/safe: the match macro raise a compile-time 
 error if the catchall branch is missing, this ensure that all possible cases are covered. The only exception where catchall branch remain optional is with bool type.
-- NiMatch/unsafe: the match macro raise a run-time error if the subject of the match construct isn't covered in the branches, but the catchall branch is optional.
+- nimatch/unsafe: the match macro raise a run-time error if the subject of the match construct isn't covered in the branches, but the catchall branch is optional.
 
 The code is organized this way due to some limitations of Nim language: getType and getTypeInst only work in a typed macro, but they don't work in a compile-time proc. [RFC#44](https://github.com/nim-lang/RFCs/issues/44) This makes it impossible, or at least very difficult, to implement a real rust-like match syntax which checks for exhaustive coverage of enums or other types in branches, and requires a catchall branch only if not all of them are covered, and render the construct more like a modified and improved (imo) case of construct.
 
@@ -17,6 +17,8 @@ As in Rust match, you can directly bind the result of the match construct to a v
 Unlike Rust, commas and parentheses aren't used, but indentation is required. The range syntax is the one of Nim, and the or syntax too is the same used in Nim case of, with the difference that parentheses are required. This improved coherence with Nim and provides a better syntax.
 
 ```nim
+import nimatch
+
 let result = match 3:
   1 => "one"
   2..4 => "two to four" # equivalent to Rust "2..=4"
@@ -30,6 +32,8 @@ If the catchall case is missing (and the match is against a type different from 
 The construct can also be used in a similar to Nim case of to just call a function in each branch. The following examples, drawn from [Nim by Example](https://nim-by-example.github.io/case), are completely equivalent. 
 
 ```nim
+import nimatch
+
 case "charlie":
   of "alfa":
     echo "A"
@@ -91,6 +95,8 @@ match false:
 It's pretty much the same as safe, but the catchall branch is optional in match against any type. An exception is raised at run-time only if the subject of the match isn't covered in any of the branches: `Error: unhandled exception: Non-exhaustive match and no branch matched [ValueError]`.
 
 ```nim
+import nimatch/unsafe
+
 match "yes":
   ("y", "yes) => doSomething()
   ("n", "no") => doNothing()
