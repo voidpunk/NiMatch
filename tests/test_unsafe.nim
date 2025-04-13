@@ -6,6 +6,11 @@ import
 echo "[TEST: UNSAFE]"
 
 
+template shouldNotCompile(code: untyped) =
+  static:
+    doAssert not compiles(code)
+
+
 test "int":
 
   var result = match 1:
@@ -69,7 +74,7 @@ test "range":
 
   result = match 4:
     0..2 => 1
-    3..5 => 2
+    (3, 4, 5) => 2
     6..8 => 3
     _ => 4
   check: result == 2
@@ -101,13 +106,11 @@ test "string":
     _ => "invalid"
   check: result == "yes"
 
-  template brokenMatch: untyped =
+  shouldNotCompile:
     # type mismatch
     result = match true:
       "y" => "yes"
       "n" => "no"
-  static:
-    doAssert not compiles(brokenMatch())
 
 
 test "char":
@@ -140,18 +143,16 @@ test "object":
     _ => "other"
   check: result == "Young Peter"
 
-template brokenMatch: untyped {.redefine.} =
-  # type mismatch
-  type Animal = object
-    name: string
-    cute: bool
-  result = match Animal(name: "fox", cute: true):
-    Person(name: "Peter", age: 30) => "Peter"
-    Person(name: "Tim", age: 30) => "Tim"
-    Person(name: "Peter", age: 20) => "Young Peter"
-    _ => "other"
-static:
-  doAssert not compiles(brokenMatch())
+  shouldNotCompile:
+    # type mismatch
+    type Animal = object
+      name: string
+      cute: bool
+    result = match Animal(name: "fox", cute: true):
+      Person(name: "Peter", age: 30) => "Peter"
+      Person(name: "Tim", age: 30) => "Tim"
+      Person(name: "Peter", age: 20) => "Young Peter"
+      _ => "other"
 
 
 test "seq":

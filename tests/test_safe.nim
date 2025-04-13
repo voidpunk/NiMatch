@@ -6,6 +6,11 @@ import
 echo "[TEST: SAFE]"
 
 
+template shouldNotCompile(code: untyped) =
+  static:
+    doAssert not compiles(code)
+
+
 test "int":
 
   var result = match 1:
@@ -29,14 +34,12 @@ test "int":
     _ => "others"
   check: result == "others"
 
-template brokenMatch: untyped =
-  # missing catchall branch
-  result = match 6:
-    1 => "one"
-    2 => "two"
-    (3, 4, 5) => "nums"
-static:
-  doAssert not compiles(brokenMatch())
+  shouldNotCompile:
+    # missing catchall branch
+    result = match 6:
+      1 => "one"
+      2 => "two"
+      (3, 4, 5) => "nums"
 
 
 test "proc":
@@ -93,14 +96,12 @@ test "range":
     _ => 4
   check: result == 4
 
-template brokenMatch: untyped {.redefine.} =
-  # missing catchall branch
-  result = match 9:
-    0..2 => 1
-    3..5 => 2
-    6..8 => 3
-static:
-  doAssert not compiles(brokenMatch())
+  shouldNotCompile:
+    # missing catchall branch
+    result = match 9:
+      0..2 => 1
+      3..5 => 2
+      6..8 => 3
 
 
 test "string":
@@ -117,13 +118,12 @@ test "string":
     _ => "invalid"
   check: result == "invalid"
 
-template brokenMatch: untyped {.redefine.} =
-  # type mismatch
-  result = match true:
-    "y" => "yes"
-    "n" => "no"
-static:
-  doAssert not compiles(brokenMatch())
+  shouldNotCompile:
+    # type mismatch
+    result = match true:
+      "y" => "yes"
+      "n" => "no"
+      _ => ""
 
 
 test "char":
@@ -143,12 +143,10 @@ test "char":
     _ => 2
   check: result == 2
 
-template brokenMatch: untyped {.redefine.} =
-  # missing catchall branch
-  result = match 'a':
-    ('a', 'b') => 1
-static:
-  doAssert not compiles(brokenMatch())
+  shouldNotCompile:
+    # missing catchall branch
+    result = match 'a':
+      ('a', 'b') => 1
 
 
 test "object":
@@ -163,18 +161,16 @@ test "object":
     _ => "other"
   check: result == "Young Peter"
 
-template brokenMatch: untyped {.redefine.} =
-  # type mismatch
-  type Animal = object
-    name: string
-    cute: bool
-  result = match Animal(name: "fox", cute: true):
-    Person(name: "Peter", age: 30) => "Peter"
-    Person(name: "Tim", age: 30) => "Tim"
-    Person(name: "Peter", age: 20) => "Young Peter"
-    _ => "other"
-static:
-  doAssert not compiles(brokenMatch())
+  shouldNotCompile:
+    # type mismatch
+    type Animal = object
+      name: string
+      cute: bool
+    result = match Animal(name: "fox", cute: true):
+      Person(name: "Peter", age: 30) => "Peter"
+      Person(name: "Tim", age: 30) => "Tim"
+      Person(name: "Peter", age: 20) => "Young Peter"
+      _ => "other"
 
 
 test "seq":
@@ -200,13 +196,9 @@ test "bool":
     true => "true"
     false => "false"
     _ => "this doesn't make sense O.o"
-    # indeed, that's why if-else construct exist
   check: result == "true"
 
-  template brokenMatch: untyped {.redefine.} =
-    # missing catchall branch
-    result = match true:
+  result = match false:
       true => "true"
       false => "false"
-  static:
-    doAssert not compiles(brokenMatch())
+  check: result == "false"
