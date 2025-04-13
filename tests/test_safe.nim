@@ -1,6 +1,6 @@
 import
   unittest,
-  NiMatch/safe
+  nimatch/safe
 
 
 echo "[TEST: SAFE]"
