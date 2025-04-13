@@ -90,7 +90,7 @@ match false:
   false => doThat()
 ```
 
-## Unsafe
+## unsafe
 
 It's pretty much the same as safe, but the catchall branch is optional in match against any type. An exception is raised at run-time only if the subject of the match isn't covered in any of the branches: `Error: unhandled exception: Non-exhaustive match and no branch matched [ValueError]`.
 
