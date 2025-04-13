@@ -2,7 +2,7 @@
 
 version       = "0.1.0"
 author        = "Nil"
-description   = "Rust-like match syntax for Nim"
+description   = "Rust-like match syntax macros for Nim"
 license       = "MIT"
 srcDir        = "src"
 
